@@ -13,40 +13,41 @@ namespace Assignment5
         public Node<T> left;
         public Node<T> right;
         public Node<T> parent;
-        public int balance=0;
+        public int balancefactor = 0;
     }
 
     public class AVLTree<T> where T : IComparable<T>
     {
         /// <summary>
         /// inserts a node recursively into the proper position,
-        /// sets parent, value, left, and right
+        /// sets parent, value, left, and right, balances tree
         /// </summary>
         /// <param name="root"></param>
         /// <param name="v"></param>
         /// <returns></returns>
-        public Node<T> insert(Node<T> root, T v)
+        public Node<T> Insert(Node<T> root, T v)
         {
             if (root == null)
             {
                 root = new Node<T>();
                 root.value = v;
             }
-
-           
+            
             // insertion logic, if the value (v )is < root, insert to the root.left
             // otherwise it's >=, so insert to the right
             else if (v.CompareTo(root.value) < 0)  //v < root.value
             {
                 
-                root.left = insert(root.left, v);
+                root.left = Insert(root.left, v);
                 root.left.parent = root;
+                root = balance_tree(root);
             }
             else
             {
 
-                root.right = insert(root.right, v);
+                root.right = Insert(root.right, v);
                 root.right.parent = root;
+                root = balance_tree(root);
             }
 
             return root;
@@ -66,7 +67,174 @@ namespace Assignment5
 
 
         }
-        
+
+        public int getHeight(Node<T> current)
+        {
+            int height = 0;
+            if (current != null)
+            {
+                int l = getHeight(current.left);
+                int r = getHeight(current.right);
+                int m = Math.Max(l, r);
+                height = m + 1;
+            }
+            return height;
+        }
+        public int balance_factor(Node<T> current)
+        {
+            int l = getHeight(current.left);
+            int r = getHeight(current.right);
+            int b_factor = l - r;
+            return b_factor;
+        }
+
+        // This is the code which actually balances the tree, it calls the different cases
+        // but RotateLeftLeft, RotateLeftRight, and RotateRightLeft are to be filled in by the student.  
+        private Node<T> balance_tree(Node<T> root)
+        {
+            root.balancefactor = balance_factor(root);// balance factor is left_height - right_height
+            if (root.balancefactor > 1)
+            {
+                //we have to rotate right
+                if (root.left.balancefactor > 0)
+                {
+                    //simple right rotation
+                    root = RotateLeftLeft(root);
+                }
+                else
+                {
+                    //straighten the bend first, and rotate right.
+                    root = RotateLeftRight(root);
+                }
+            }
+            else if (root.balancefactor < -1)
+            {
+                //we have to rotate left
+                if (root.right.balancefactor > 0)
+                {
+                    //straighten the bend and then rotate left.
+                    root = RotateRightLeft(root);
+                }
+                else
+                {
+                    //use this as a template
+                    //This is a simple left rotation
+                    root = RotateRightRight(root);
+                }
+            }
+            return root;
+        }//end balance_tree
+
+        /// <summary>
+        /// Steps:
+        /// 1. set the new roots parent to the old roots, and set the old root parent to the new root
+        /// 2. if the new root has a right child, deal with it so it doesnt get lost
+        ///     - set the right child as the left child of the oldRoot, and set its parent to the old root.
+        ///       this movement will keep the tree a valid BST
+        /// 3. finally, set the old root as the child of the new root. 
+        /// return the new root. tree is now balanced.
+        /// </summary>
+        /// <param name="oldRoot"></param>
+        /// <returns></returns>
+        public Node<T> RotateLeftLeft(Node<T> oldRoot)
+        {
+            Node<T> newRoot = oldRoot.left;
+
+            newRoot.parent = oldRoot.parent;
+            oldRoot.parent = newRoot;
+
+
+            //if the new root has both left and right children, deal with the right child
+            if (newRoot.right != null)
+            {
+                Node<T> newRootRight = newRoot.right;
+
+                oldRoot.left = newRootRight;
+                newRootRight.parent = oldRoot;
+            }
+            else
+            {
+                oldRoot.left = null;
+            }
+            
+
+            newRoot.right = oldRoot;
+
+            //refactor balance in new position
+            //oldRoot.balancefactor = balance_factor(oldRoot);
+
+            return newRoot;
+        }
+
+        public Node<T> RotateLeftRight(Node<T> oldRoot)
+        {
+            Node<T> newLeft = oldRoot.left;
+
+            Node<T> newRoot = newLeft.right;
+            //step one
+            newRoot.parent = oldRoot;
+            newLeft.parent = newRoot;
+
+            newRoot.left = newLeft;
+
+            oldRoot.left = newRoot;
+            newLeft.right = null;
+
+            //step two
+            newRoot = RotateLeftLeft(oldRoot);
+
+            return newRoot;
+        }
+
+        public Node<T> RotateRightRight(Node<T> oldRoot)
+        {
+            Node<T> newRoot = oldRoot.right;
+
+            newRoot.parent = oldRoot.parent;
+            oldRoot.parent = newRoot;
+
+
+            //if the new root has both right and right children, deal with the right child
+            if (newRoot.left != null)
+            {
+                Node<T> newRootRight = newRoot.left;
+
+                oldRoot.right = newRootRight;
+                newRootRight.parent = oldRoot;
+            }
+            else
+            {
+                oldRoot.right = null;
+            }
+
+
+            newRoot.left = oldRoot;
+
+            //refactor balance in new position
+            //oldRoot.balancefactor = balance_factor(oldRoot);
+
+            return newRoot;
+        }
+
+        public Node<T> RotateRightLeft(Node<T> oldRoot)
+        {
+            Node<T> newRight = oldRoot.right;
+
+            Node<T> newRoot = newRight.left;
+            //step one
+            newRoot.parent = oldRoot;
+            newRight.parent = newRoot;
+
+            newRoot.right = newRight;
+
+            oldRoot.right = newRoot;
+            newRight.left = null;
+
+            //step two
+            newRoot = RotateRightRight(oldRoot);
+
+            return newRoot;
+        }
 
         public string inOrder(Node<T> root)
         {
@@ -146,6 +314,41 @@ namespace Assignment5
                     Console.WriteLine(root.value.ToString());
                 }
             }
+        }
+
+        //Level order traversal repurposed from http://www.geeksforgeeks.org/level-order-tree-traversal/
+        public void printLevelOrder(Node<T> root)
+        {
+            int treeHeight = getHeight(root);
+            int i;
+            string temp;//formatting 
+            for (i = 1; i <= treeHeight; i++)
+            {
+                Console.WriteLine();
+                temp = new string(' ', 4 * (treeHeight - i));//formatting
+                Console.Write(temp);//the formatting being printed
+                printGivenLevel(root, i);
+            }
+        }
+        public void printGivenLevel(Node<T> root, int level)
+        {
+            //The formatting should probably happen here not in printLevelOrder
+            //
+
+            if (root == null)
+            {
+                Console.Write(" ni ");
+                return;
+            }
+            if (level == 1)
+                Console.Write(" " + root.value + " ");
+            else if (level > 1)
+            {
+                printGivenLevel(root.left, level - 1);
+                printGivenLevel(root.right, level - 1);
+
+            }
+
         }
 
         public Node<T> findSmallest(Node<T> root)
