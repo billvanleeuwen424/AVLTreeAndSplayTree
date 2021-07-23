@@ -7,20 +7,12 @@ using System.Threading.Tasks;
 
 namespace Assignment5
 {
-    public class Node<T>
-    {
-        public T value;
-        public Node<T> left;
-        public Node<T> right;
-        public Node<T> parent;
-        public int balancefactor = 0;
-    }
 
-    public class AVLTree<T> where T : IComparable<T>
+    public class SplayTree<T> where T : IComparable<T>
     {
         /// <summary>
         /// inserts a node recursively into the proper position,
-        /// sets parent, value, left, and right, balances tree
+        /// sets parent, value, left, and right
         /// </summary>
         /// <param name="root"></param>
         /// <param name="v"></param>
@@ -32,7 +24,8 @@ namespace Assignment5
                 root = new Node<T>();
                 root.value = v;
             }
-            
+
+           
             // insertion logic, if the value (v )is < root, insert to the root.left
             // otherwise it's >=, so insert to the right
             else if (v.CompareTo(root.value) < 0)  //v < root.value
@@ -40,14 +33,12 @@ namespace Assignment5
                 
                 root.left = Insert(root.left, v);
                 root.left.parent = root;
-                root = balance_tree(root);
             }
             else
             {
 
                 root.right = Insert(root.right, v);
                 root.right.parent = root;
-                root = balance_tree(root);
             }
 
             return root;
@@ -64,198 +55,10 @@ namespace Assignment5
             Console.WriteLine(root.value.ToString());
             traverse(root.left);
             traverse(root.right);
+
+
         }
-
-        public int getHeight(Node<T> current)
-        {
-            int height = 0;
-            if (current != null)
-            {
-                int l = getHeight(current.left);
-                int r = getHeight(current.right);
-                int m = Math.Max(l, r);
-                height = m + 1;
-            }
-            return height;
-        }
-        public int balance_factor(Node<T> current)
-        {
-            int l = getHeight(current.left);
-            int r = getHeight(current.right);
-            int b_factor = l - r;
-            return b_factor;
-        }
-
-        // This is the code which actually balances the tree, it calls the different cases
-        // but RotateLeftLeft, RotateLeftRight, and RotateRightLeft are to be filled in by the student.  
-        private Node<T> balance_tree(Node<T> root)
-        {
-            root.balancefactor = balance_factor(root);// balance factor is left_height - right_height
-            if (root.balancefactor > 1)
-            {
-                //we have to rotate right
-                if (root.left.balancefactor > 0)
-                {
-                    //simple right rotation
-                    root = RotateLeftLeft(root);
-                }
-                else
-                {
-                    //straighten the bend first, and rotate right.
-                    root = RotateLeftRight(root);
-                }
-            }
-            else if (root.balancefactor < -1)
-            {
-                //we have to rotate left
-                if (root.right.balancefactor > 0)
-                {
-                    //straighten the bend and then rotate left.
-                    root = RotateRightLeft(root);
-                }
-                else
-                {
-                    //use this as a template
-                    //This is a simple left rotation
-                    root = RotateRightRight(root);
-                }
-            }
-            return root;
-        }//end balance_tree
-
-        /// <summary>
-        /// Steps:
-        /// 1. set the new roots parent to the old roots, and set the old root parent to the new root
-        /// 2. if the new root has a right child, deal with it so it doesnt get lost
-        ///     - set the right child as the left child of the oldRoot, and set its parent to the old root.
-        ///       this movement will keep the tree a valid BST
-        /// 3. finally, set the old root as the child of the new root. 
-        /// return the new root. tree is now balanced.
-        /// </summary>
-        /// <param name="oldRoot"></param>
-        /// <returns></returns>
-        public Node<T> RotateLeftLeft(Node<T> oldRoot)
-        {
-            Node<T> newRoot = oldRoot.left;
-
-            Node<T> oldRootParent = oldRoot.parent;
-
-            newRoot.parent = oldRoot.parent;
-            oldRoot.parent = newRoot;
-
-            //connect the old root parent to the newroot (its new child)
-            if (oldRootParent != null && oldRoot == oldRootParent.right)
-            {
-                oldRootParent.right = newRoot;
-            }
-            else if (oldRootParent != null)
-            {
-                oldRootParent.left = newRoot;
-            }
-
-            //if the new root has both left and right children, deal with the right child
-            if (newRoot.right != null)
-            {
-                Node<T> newRootRight = newRoot.right;
-
-                oldRoot.left = newRootRight;
-                newRootRight.parent = oldRoot;
-            }
-            else
-            {
-                oldRoot.left = null;
-            }
-            
-
-            newRoot.right = oldRoot;
-
-            //refactor balance in new position
-            //oldRoot.balancefactor = balance_factor(oldRoot);
-
-            return newRoot;
-        }
-
-        public Node<T> RotateLeftRight(Node<T> oldRoot)
-        {
-            Node<T> newLeft = oldRoot.left;
-
-            Node<T> newRoot = newLeft.right;
-            //step one
-            newRoot.parent = oldRoot;
-            newLeft.parent = newRoot;
-
-            newRoot.left = newLeft;
-
-            oldRoot.left = newRoot;
-            newLeft.right = null;
-
-            //step two
-            newRoot = RotateLeftLeft(oldRoot);
-
-            return newRoot;
-        }
-
-        public Node<T> RotateRightRight(Node<T> oldRoot)
-        {
-            Node<T> newRoot = oldRoot.right;
-
-            Node<T> oldRootParent = oldRoot.parent;
-
-            newRoot.parent = oldRoot.parent;
-            oldRoot.parent = newRoot;
-
-            //connect the old root parent to the newroot (its new child)
-            if (oldRootParent != null && oldRoot == oldRootParent.right)
-            {
-                oldRootParent.right = newRoot;
-            }
-            else if (oldRootParent != null)
-            {
-                oldRootParent.left = newRoot;
-            }
-
-            //if the new root has both right and right children, deal with the right child
-            if (newRoot.left != null)
-            {
-                Node<T> newRootRight = newRoot.left;
-
-                oldRoot.right = newRootRight;
-                newRootRight.parent = oldRoot;
-            }
-            else
-            {
-                oldRoot.right = null;
-            }
-
-
-            newRoot.left = oldRoot;
-
-            //refactor balance in new position
-            //oldRoot.balancefactor = balance_factor(oldRoot);
-
-            return newRoot;
-        }
-
-        public Node<T> RotateRightLeft(Node<T> oldRoot)
-        {
-            Node<T> newRight = oldRoot.right;
-
-            Node<T> newRoot = newRight.left;
-            //step one
-            newRoot.parent = oldRoot;
-            newRight.parent = newRoot;
-
-            newRoot.right = newRight;
-
-            oldRoot.right = newRoot;
-            newRight.left = null;
-
-            //step two
-            newRoot = RotateRightRight(oldRoot);
-
-            return newRoot;
-        }
-
+        
         public string inOrder(Node<T> root)
         {
             if (root == null)
@@ -335,7 +138,148 @@ namespace Assignment5
                 }
             }
         }
+        /// <summary>
+        /// preforms rotations based upon the parent or grandparent of the node
+        /// tail recursive
+        /// </summary>
+        /// <param name="root"></param>
+        /// <returns></returns>
+        public Node<T> Splay(Node<T> root)
+        {
+            Node<T> parent = root.parent;
 
+            if (parent == null)//if the root is the root, has no parents
+            {
+                //no code needs to be here...
+            }
+            else if (root.parent.parent == null) //the node has only one parent, it is only one rotation away from the true root
+            {
+                
+
+                if(parent.left == root)
+                    root = Zag(parent);
+                else
+                    root = Zig(parent);
+            }
+            else    //the node has two or more parents
+            {
+                Node<T> grandParent = parent.parent;
+
+                if(grandParent.left == parent)
+                {
+                    if(parent.left == root) //ZagZag
+                    {
+                        root = Zag(parent);
+                        root = Zag(grandParent);
+                    }
+                    else    //ZigZag
+                    {
+                        root = Zig(parent);
+                        root = Zag(grandParent);
+                    }
+                }
+                else
+                {
+                    if (parent.right == root)  //ZigZig
+                    {
+                        root = Zig(parent);
+                        root = Zig(grandParent);
+                    }
+                    else    //ZagZig
+                    {
+                        root = Zag(parent);
+                        root = Zig(grandParent);
+                    }
+                }
+            }
+            //tail recursion if the root is not yet at the top
+            if (root.parent != null)
+                root = Splay(root);
+            return root;
+        }
+        //rotate left
+        public Node<T> Zag(Node<T> oldRoot)
+        {
+            Node<T> newRoot = oldRoot.left;
+
+            Node<T> oldRootParent = oldRoot.parent;
+
+            newRoot.parent = oldRoot.parent;
+            oldRoot.parent = newRoot;
+
+
+            if (oldRootParent != null && oldRoot == oldRootParent.right)
+            {
+                oldRootParent.right = newRoot;
+            }
+            else if (oldRootParent != null)
+            {
+                oldRootParent.left = newRoot;
+            }
+
+            //if the new root has both left and right children, deal with the right child
+            if (newRoot.right != null)
+            {
+                Node<T> newRootRight = newRoot.right;
+
+                oldRoot.left = newRootRight;
+                newRootRight.parent = oldRoot;
+            }
+            else
+            {
+                oldRoot.left = null;
+            }
+
+
+            newRoot.right = oldRoot;
+
+            return newRoot;
+        }
+        //rotate right
+        public Node<T> Zig(Node<T> oldRoot)
+        {
+            Node<T> newRoot = oldRoot.right;
+
+            Node<T> oldRootParent = oldRoot.parent;
+
+            newRoot.parent = oldRoot.parent;
+            oldRoot.parent = newRoot;
+
+            if(oldRootParent != null && oldRoot == oldRootParent.right)
+            {
+                oldRootParent.right = newRoot;
+            }
+            else if (oldRootParent != null)
+            {
+                oldRootParent.left = newRoot;
+            }
+
+            //if the new root has both right and right children, deal with the right child
+            if (newRoot.left != null)
+            {
+                Node<T> newRootRight = newRoot.left;
+
+                oldRoot.right = newRootRight;
+                newRootRight.parent = oldRoot;
+            }
+            else
+            {
+                oldRoot.right = null;
+            }
+
+            
+            newRoot.left = oldRoot;
+
+            return newRoot;
+        }
+
+        public Node<T> Find(Node<T> root, T item)
+        {
+            root = Search(root, item);
+            root = Splay(root);
+
+            return root;
+        }
         //Level order traversal repurposed from http://www.geeksforgeeks.org/level-order-tree-traversal/
         public void printLevelOrder(Node<T> root)
         {
@@ -350,6 +294,7 @@ namespace Assignment5
                 printGivenLevel(root, i);
             }
         }
+
         public void printGivenLevel(Node<T> root, int level)
         {
             //The formatting should probably happen here not in printLevelOrder
@@ -369,6 +314,19 @@ namespace Assignment5
 
             }
 
+        }
+
+        public int getHeight(Node<T> current)
+        {
+            int height = 0;
+            if (current != null)
+            {
+                int l = getHeight(current.left);
+                int r = getHeight(current.right);
+                int m = Math.Max(l, r);
+                height = m + 1;
+            }
+            return height;
         }
 
         public Node<T> findSmallest(Node<T> root)
@@ -405,6 +363,8 @@ namespace Assignment5
             else
                 root = returnNode;  //null node
 
+            //root = Splay(root);
+
             return root;
         }
 
@@ -437,10 +397,6 @@ namespace Assignment5
             return aunt;
         }
 
-        /// <summary>
-        /// A standard BST delete, followed by a rebalancing of every node above the deleted node
-        /// </summary>
-        /// <param name="toDelete"></param>
         public void Delete(Node<T> toDelete)
         {
             Node<T> toDeleteParent = toDelete.parent;
@@ -453,9 +409,6 @@ namespace Assignment5
                     toDeleteParent.left = null;
                 else
                     toDeleteParent.right = null;
-
-                //rebalance up
-                RebalanceUpward(toDeleteParent);
             }
             //only one child
             else if (toDelete.left != null && toDelete.right == null)   //if only has one child, and it is left child
@@ -468,9 +421,6 @@ namespace Assignment5
                     toDeleteParent.right = toDeleteOnlyChild;
 
                 toDeleteOnlyChild.parent = toDeleteParent;
-
-                //rebalance up
-                RebalanceUpward(toDeleteParent);
             }
             else if (toDelete.left == null && toDelete.right != null)   //if only has one child, and it is right child
             {
@@ -482,9 +432,6 @@ namespace Assignment5
                     toDeleteParent.left = toDeleteOnlyChild;
 
                 toDeleteOnlyChild.parent = toDeleteParent;
-
-                //rebalance up
-                RebalanceUpward(toDeleteParent);
             }
             //two children
             else
@@ -492,9 +439,7 @@ namespace Assignment5
                 //find in order successor
                 Node<T> successor = FindInOrderSuccessor(toDelete);
 
-                //getting this for the starting point of rebalancing
                 Node<T> successorOldParent = successor.parent;
-
 
                 if (successor.right != null || successor.left != null)  //if the successor has children we need to worry about
                 {
@@ -529,31 +474,11 @@ namespace Assignment5
                     successorOldParent.left = null;
                 if (successorOldParent.right == successor)
                     successorOldParent.right = null;
-                
-                //rebalance up
-                RebalanceUpward(successorOldParent);
-            }             
-        }
-
-        /// <summary>
-        /// uses a loop to check balance going upward. will check balance of passed node, and every node above it, until it reaches the true root.
-        /// </summary>
-        /// <param name="current"></param>
-        private void RebalanceUpward(Node<T> current)
-        {
-            while (current != null)
-            {
-                balance_tree(current);
-
-                current = current.parent;
             }
+
+
         }
 
-        /// <summary>
-        /// find in order successor. find the smallest node in the right subtree
-        /// </summary>
-        /// <param name="root"></param>
-        /// <returns></returns>
         private Node<T> FindInOrderSuccessor(Node<T> root)
         {
             Node<T> rootRight = root.right;
@@ -563,11 +488,6 @@ namespace Assignment5
             return inOrderSuccessor;
         }
 
-        /// <summary>
-        /// validates the whole tree below the passed node to be a BST
-        /// </summary>
-        /// <param name="root"></param>
-        /// <returns></returns>
         public bool ValidateWholeTree(Node<T> root)
         {
             bool treeValid = true;
@@ -604,11 +524,6 @@ namespace Assignment5
             return treeValid;
         }
 
-        /// <summary>
-        /// validates the specific subtree as a BST 
-        /// </summary>
-        /// <param name="root"></param>
-        /// <returns></returns>
         private bool ValidateSubTree(Node<T> root)
         {
             bool valid = true;
