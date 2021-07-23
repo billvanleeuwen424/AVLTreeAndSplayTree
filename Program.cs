@@ -22,10 +22,14 @@ namespace Assignment5
             {
                 root = splayInt.Insert(root, rand.Next(50));
             }
+
+            splayInt.ValidateWholeTree(root);
+
+
             Node<int> seven = splayInt.Search(root, 7);
             //before splaying seven
             splayInt.printLevelOrder(root);
-            root = splayInt.Splay(seven);
+            root = splayInt.Delete(root, seven);
             //after splaying seven
             splayInt.printLevelOrder(root);
 

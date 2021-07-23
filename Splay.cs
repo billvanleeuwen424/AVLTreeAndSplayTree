@@ -13,16 +13,21 @@ namespace Assignment5
         /// <summary>
         /// inserts a node recursively into the proper position,
         /// sets parent, value, left, and right
+        /// 
+        /// returns a tuple of the root, and the newly inserted node
         /// </summary>
         /// <param name="root"></param>
         /// <param name="v"></param>
         /// <returns></returns>
-        public Node<T> Insert(Node<T> root, T v)
+        public (Node<T>, Node<T>) BSTInsert(Node<T> root, T v)
         {
+            Node<T> newNode = root;
             if (root == null)
             {
                 root = new Node<T>();
                 root.value = v;
+
+                newNode = root;
             }
 
            
@@ -31,32 +36,35 @@ namespace Assignment5
             else if (v.CompareTo(root.value) < 0)  //v < root.value
             {
                 
-                root.left = Insert(root.left, v);
+                (root.left, newNode) = BSTInsert(root.left, v);
                 root.left.parent = root;
             }
             else
             {
-
-                root.right = Insert(root.right, v);
+                (root.right, newNode) = BSTInsert(root.right, v);
                 root.right.parent = root;
             }
 
-            return root;
+            return (root, newNode);
         }
-        // Lab:  Take the code from here, and implement 3 different traversals  as strings
-        // public string traverse (Node root)
 
-        public void traverse(Node<T> root)
+        /// <summary>
+        /// Inserts the new node by calling the BSTInsert method.
+        /// Following that, splays the tree by the newly inserted node.
+        /// then with that now at the root, returns it.
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="v"></param>
+        /// <returns></returns>
+        public Node<T> Insert(Node<T> root, T v)
         {
-            if (root == null)
-            {
-                return;
-            }
-            Console.WriteLine(root.value.ToString());
-            traverse(root.left);
-            traverse(root.right);
+            Node<T> newNode = new Node<T>();
 
+            (root, newNode) = BSTInsert(root, v);
 
+            root = Splay(newNode);
+
+            return root;
         }
         
         public string inOrder(Node<T> root)
@@ -273,6 +281,12 @@ namespace Assignment5
             return newRoot;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public Node<T> Find(Node<T> root, T item)
         {
             root = Search(root, item);
@@ -397,7 +411,14 @@ namespace Assignment5
             return aunt;
         }
 
-        public void Delete(Node<T> toDelete)
+        public Node<T> Delete(Node<T>  root, Node<T> toDelete)
+        {
+            Node<T> toDeleteParent = BSTDelete(toDelete);
+            root = Splay(toDeleteParent);
+
+            return root;
+        }
+        public Node<T> BSTDelete(Node<T> toDelete)
         {
             Node<T> toDeleteParent = toDelete.parent;
 
@@ -443,7 +464,7 @@ namespace Assignment5
 
                 if (successor.right != null || successor.left != null)  //if the successor has children we need to worry about
                 {
-                    Delete(successor);
+                    BSTDelete(successor);
                 }
 
                 //transfer toDeletes attributes to successor
@@ -476,7 +497,7 @@ namespace Assignment5
                     successorOldParent.right = null;
             }
 
-
+            return toDeleteParent;
         }
 
         private Node<T> FindInOrderSuccessor(Node<T> root)
