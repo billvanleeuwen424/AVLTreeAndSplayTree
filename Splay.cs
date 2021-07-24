@@ -165,9 +165,9 @@ namespace Assignment5
                 
 
                 if(parent.left == root)
-                    root = Zag(parent);
-                else
                     root = Zig(parent);
+                else
+                    root = Zag(parent);
             }
             else    //the node has two or more parents
             {
@@ -175,20 +175,7 @@ namespace Assignment5
 
                 if(grandParent.left == parent)
                 {
-                    if(parent.left == root) //ZagZag
-                    {
-                        root = Zag(parent);
-                        root = Zag(grandParent);
-                    }
-                    else    //ZigZag
-                    {
-                        root = Zig(parent);
-                        root = Zag(grandParent);
-                    }
-                }
-                else
-                {
-                    if (parent.right == root)  //ZigZig
+                    if(parent.left == root) //ZigZig
                     {
                         root = Zig(parent);
                         root = Zig(grandParent);
@@ -199,6 +186,19 @@ namespace Assignment5
                         root = Zig(grandParent);
                     }
                 }
+                else
+                {
+                    if (parent.right == root)  //Zagzag
+                    {
+                        root = Zag(parent);
+                        root = Zag(grandParent);
+                    }
+                    else    //Zigzag
+                    {
+                        root = Zig(parent);
+                        root = Zag(grandParent);
+                    }
+                }
             }
             //tail recursion if the root is not yet at the top
             if (root.parent != null)
@@ -206,7 +206,7 @@ namespace Assignment5
             return root;
         }
         //rotate left
-        public Node<T> Zag(Node<T> oldRoot)
+        public Node<T> Zig(Node<T> oldRoot)
         {
             Node<T> newRoot = oldRoot.left;
 
@@ -244,7 +244,7 @@ namespace Assignment5
             return newRoot;
         }
         //rotate right
-        public Node<T> Zig(Node<T> oldRoot)
+        public Node<T> Zag(Node<T> oldRoot)
         {
             Node<T> newRoot = oldRoot.right;
 
@@ -281,19 +281,7 @@ namespace Assignment5
             return newRoot;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="root"></param>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        public Node<T> Find(Node<T> root, T item)
-        {
-            root = Search(root, item);
-            root = Splay(root);
 
-            return root;
-        }
         //Level order traversal repurposed from http://www.geeksforgeeks.org/level-order-tree-traversal/
         public void printLevelOrder(Node<T> root)
         {
@@ -357,8 +345,22 @@ namespace Assignment5
             return returnNode;
         }
 
+        /// <summary>
+        /// will return the node asked for, if not found, will return a default/null node
+        /// 
+        /// uses a standard BST search, and then splays that node to the top
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public Node<T> Find(Node<T> root, T item)
+        {
+            root = Search(root, item);
+            root = Splay(root);
 
-        public Node<T> Search(Node<T> root, T item)
+            return root;
+        }
+        private Node<T> Search(Node<T> root, T item)
         {
             Node<T> returnNode = new Node<T>();
 
@@ -411,14 +413,30 @@ namespace Assignment5
             return aunt;
         }
 
-        public Node<T> Delete(Node<T>  root, Node<T> toDelete)
+        /// <summary>
+        /// searches for the value to be deleted, if not found returns original root.
+        /// else, returns the deleted nodes parent, which was now splayed to the root
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Node<T> Delete(Node<T> root, T value)
         {
-            Node<T> toDeleteParent = BSTDelete(toDelete);
-            root = Splay(toDeleteParent);
+            Node<T> toDelete = Search(root, value);
 
-            return root;
+            if(toDelete == null)
+            {
+                Console.WriteLine("nothing was deleted");
+                return root;
+            }
+            else
+            {
+                Node<T> toDeleteParent = BSTDelete(toDelete);
+                toDeleteParent = Splay(toDeleteParent);
+                return toDeleteParent;  //this is now the root
+            } 
         }
-        public Node<T> BSTDelete(Node<T> toDelete)
+        private Node<T> BSTDelete(Node<T> toDelete)
         {
             Node<T> toDeleteParent = toDelete.parent;
 
